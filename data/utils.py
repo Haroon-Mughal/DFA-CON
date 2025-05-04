@@ -34,6 +34,7 @@ def split_train_val(anchor_to_positives: Dict[str, List[str]], val_ratio: float 
     val_map = {a: anchor_to_positives[a] for a in val_anchors}
 
     return train_map, val_map
+    
 
 def prepare_data_splits(train_json: str, test_json: str, val_ratio: float = 0.2):
     """
@@ -45,3 +46,40 @@ def prepare_data_splits(train_json: str, test_json: str, val_ratio: float = 0.2)
     test_map = load_anchor_positive_map(test_json)
     train_map, val_map = split_train_val(train_full_map, val_ratio)
     return train_map, val_map, test_map
+
+def load_test_pairs(similar_json_path: str, dissimilar_json_path: str) -> List[Tuple[str, str, int]]:
+    """
+    Loads image pairs and labels from the DeepfakeArt test set format.
+
+    Returns:
+        List of (img_path1, img_path2, label)
+        where label = 1 for similar (forged), 0 for dissimilar (unrelated)
+    """
+    pairs = []
+
+    # Load similar pairs (label = 1)
+    with open(similar_json_path, 'r') as f:
+        similar_data = json.load(f)
+        for _, entry in similar_data.items():
+            img1 = entry["original"]
+            img2 = entry["generated"]
+            pairs.append((img1, img2, 1))
+
+    # Load dissimilar pairs (label = 0)
+    with open(dissimilar_json_path, 'r') as f:
+        dissimilar_data = json.load(f)
+        for _, entry in dissimilar_data.items():
+            img1 = entry["image_0"]
+            img2 = entry["image_1"]
+            pairs.append((img1, img2, 0))
+
+    return pairs
+
+
+
+
+
+
+
+
+
