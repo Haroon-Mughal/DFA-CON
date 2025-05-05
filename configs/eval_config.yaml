@@ -1,0 +1,12 @@
+model_path: checkpoints/resnet50_bs32_lr0.5_supcon_ep23_loss0.3742.pt
+model_name: resnet50
+feature_dim: 128
+
+data_root: /path/to/data
+
+train_similar_json: data/train_similar.json
+train_dissimilar_json: data/train_dissimilar.json
+test_similar_json: data/test_similar.json
+test_dissimilar_json: data/test_dissimilar.json
+
+device: cuda

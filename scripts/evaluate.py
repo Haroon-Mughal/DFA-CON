@@ -1,4 +1,5 @@
 import argparse
+import yaml
 import torch
 import torch.nn.functional as F
 from torchvision import transforms
@@ -53,18 +54,16 @@ def load_model(model_name, feature_dim, model_path, device):
     model.load_state_dict(torch.load(model_path, map_location=device))
     return model
 
+def load_config(config_path):
+    with open(config_path, 'r') as f:
+        return yaml.safe_load(f)
+
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model_path", type=str, required=True)
-    parser.add_argument("--model_name", type=str, default="resnet50")
-    parser.add_argument("--feature_dim", type=int, default=128)
-    parser.add_argument("--data_root", type=str, required=True)
-    parser.add_argument("--train_similar_json", type=str, required=True)
-    parser.add_argument("--train_dissimilar_json", type=str, required=True)
-    parser.add_argument("--test_similar_json", type=str, required=True)
-    parser.add_argument("--test_dissimilar_json", type=str, required=True)
-    parser.add_argument("--device", type=str, default="cuda")
+    parser.add_argument("--config", type=str, required=True, help="Path to YAML config file")
     args = parser.parse_args()
+
+    config = load_config(args.config)
 
     transform = transforms.Compose([
         transforms.Resize((224, 224)),
@@ -72,20 +71,20 @@ def main():
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     ])
 
-    model = load_model(args.model_name, args.feature_dim, args.model_path, args.device)
+    model = load_model(config["model_name"], config["feature_dim"], config["model_path"], config["device"])
     model.eval()
 
-    os.chdir(args.data_root)
+    os.chdir(config["data_root"])
 
     print("\nFinding best threshold on train split...")
-    train_pairs = load_test_pairs(args.train_similar_json, args.train_dissimilar_json)
-    train_scores, train_labels = compute_similarity_scores(model, train_pairs, transform, args.device)
+    train_pairs = load_test_pairs(config["train_similar_json"], config["train_dissimilar_json"])
+    train_scores, train_labels = compute_similarity_scores(model, train_pairs, transform, config["device"])
     best_thresh, best_f1 = find_best_threshold(train_scores, train_labels)
     print(f"Best threshold: {best_thresh:.4f}, Train F1: {best_f1:.4f}")
 
     print("\nEvaluating on test split...")
-    test_pairs = load_test_pairs(args.test_similar_json, args.test_dissimilar_json)
-    precision, recall, f1 = evaluate(model, test_pairs, transform, best_thresh, args.device)
+    test_pairs = load_test_pairs(config["test_similar_json"], config["test_dissimilar_json"])
+    precision, recall, f1 = evaluate(model, test_pairs, transform, best_thresh, config["device"])
     print(f"Test Precision: {precision:.4f}, Recall: {recall:.4f}, F1: {f1:.4f}")
 
 if __name__ == "__main__":
