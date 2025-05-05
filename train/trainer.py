@@ -103,7 +103,8 @@ def train_model(
     builtin_print = builtins.print
     def log_print(*args, **kwargs):
         builtin_print(*args, **kwargs)
-        print(*args, **kwargs, file=log_file)
+        kwargs.pop("file", None)  # Remove 'file' if already present
+        print(*args, file=log_file, **kwargs)
     builtins.print = log_print
 
     best_val_loss = float("inf")
