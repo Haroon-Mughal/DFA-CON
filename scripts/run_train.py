@@ -115,7 +115,8 @@ def main():
         batch_size=config["batch_size"],
         lr=config["lr"],
         loss_name=config["loss_name"],
-        checkpoint_dir=config["checkpoint_dir"]
+        checkpoint_dir=config["checkpoint_dir"],
+        log_root=config['log_root']
     )
 
 if __name__ == "__main__":
