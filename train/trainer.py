@@ -84,10 +84,11 @@ def train_model(
     lr=0.5,
     loss_name="supcon",
     checkpoint_dir="checkpoints",
-    log_root="logs"
+    log_root="logs",
+    head_type=head_type
 ):
     # === Create experiment directory ===
-    exp_name = f"{model_name}_bs{batch_size}_lr{lr}_{loss_name}"
+    exp_name = f"{model_name}_bs{batch_size}_lr{lr}_{loss_name}_head_type_{head_type}_warmup{warmup_epochs}"
     exp_dir = os.path.join(log_root, exp_name)
     os.makedirs(exp_dir, exist_ok=True)
 

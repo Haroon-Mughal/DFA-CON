@@ -9,8 +9,8 @@ val_split: 0.2
 head_type: mlp
 batch_size: 32
 epochs: 60
-warmup_epochs: 10
-lr: 0.05
+warmup_epochs: 15
+lr: 0.01
 feature_dim: 128
 patience: 10
 

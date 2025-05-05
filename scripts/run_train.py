@@ -116,7 +116,8 @@ def main():
         lr=config["lr"],
         loss_name=config["loss_name"],
         checkpoint_dir=config["checkpoint_dir"],
-        log_root=config['log_root']
+        log_root=config['log_root'],
+        head_type=config['head_type']
     )
 
 if __name__ == "__main__":
