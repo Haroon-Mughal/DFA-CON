@@ -16,7 +16,6 @@ def create_warmup_cosine_scheduler(optimizer, warmup_epochs, total_epochs, eta_m
     scheduler = SequentialLR(optimizer, schedulers=[warmup_scheduler, cosine_scheduler], milestones=[warmup_epochs])
     return scheduler
 
-
 def cosine_warmup_scheduler(optimizer, warmup_epochs, total_epochs):
     def lr_lambda(current_epoch):
         if current_epoch < warmup_epochs:
@@ -104,51 +103,53 @@ def train_model(
     def log_print(*args, **kwargs):
         builtin_print(*args, **kwargs)
         kwargs.pop("file", None)
-        builtin_print(*args, file=log_file, **kwargs)  # ✅ use builtin_print for file logging too
+        builtin_print(*args, file=log_file, **kwargs)
+        log_file.flush()
+
     builtins.print = log_print
 
-    best_val_loss = float("inf")
-    best_epoch = -1
-    patience_counter = 0
-    #scheduler = cosine_warmup_scheduler(optimizer, warmup_epochs, num_epochs)
-    scheduler = create_warmup_cosine_scheduler(optimizer, warmup_epochs, num_epochs, eta_min=1e-5)
+    try:
+        best_val_loss = float("inf")
+        best_epoch = -1
+        patience_counter = 0
+        scheduler = create_warmup_cosine_scheduler(optimizer, warmup_epochs, num_epochs, eta_min=1e-5)
 
-    # === Pre-training evaluation ===
-    print("\n🔍 Pre-training evaluation...")
-    val_loss, val_var = validate_supcon_epoch(model, val_loader, loss_fn, device)
-    print(f"Val Loss (pre-train): {val_loss:.4f}, Feature Variance: {val_var:.4f}")
+        # === Pre-training evaluation ===
+        print("\n🔍 Pre-training evaluation...")
+        val_loss, val_var = validate_supcon_epoch(model, val_loader, loss_fn, device)
+        print(f"Val Loss (pre-train): {val_loss:.4f}, Feature Variance: {val_var:.4f}")
 
-    for epoch in range(1, num_epochs + 1):
-        print(f"\nEpoch {epoch}")
+        for epoch in range(1, num_epochs + 1):
+            print(f"\nEpoch {epoch}")
 
-        train_loss, train_var = train_supcon_epoch(
-            model, train_loader, optimizer, loss_fn, device
-        )
-        print(f"Train Loss: {train_loss:.4f}, Feature Variance: {train_var:.4f}")
+            train_loss, train_var = train_supcon_epoch(
+                model, train_loader, optimizer, loss_fn, device
+            )
+            print(f"Train Loss: {train_loss:.4f}, Feature Variance: {train_var:.4f}")
 
-        val_loss, val_var = validate_supcon_epoch(
-            model, val_loader, loss_fn, device
-        )
-        print(f"Val Loss: {val_loss:.4f}, Feature Variance: {val_var:.4f}")
+            val_loss, val_var = validate_supcon_epoch(
+                model, val_loader, loss_fn, device
+            )
+            print(f"Val Loss: {val_loss:.4f}, Feature Variance: {val_var:.4f}")
 
-        scheduler.step()
+            scheduler.step()
 
-        if val_loss < best_val_loss:
-            print("✅ Saving new best model...")
-            best_val_loss = val_loss
-            best_epoch = epoch
-            patience_counter = 0
+            if val_loss < best_val_loss:
+                print("✅ Saving new best model...")
+                best_val_loss = val_loss
+                best_epoch = epoch
+                patience_counter = 0
 
-            # Compose informative checkpoint filename
-            filename = f"{model_name}_bs{batch_size}_lr{lr}_{loss_name}_ep{best_epoch}_loss{val_loss:.4f}.pt"
-            checkpoint_path = os.path.join(ckpt_dir, filename)
-            torch.save(model.state_dict(), checkpoint_path)
-        else:
-            patience_counter += 1
-            print(f"No improvement. Patience: {patience_counter}/{early_stopping_patience}")
-            if patience_counter >= early_stopping_patience:
-                print("⏹️ Early stopping triggered.")
-                break
-
-    log_file.close()
-    builtins.print = builtin_print
+                # Compose informative checkpoint filename
+                filename = f"{model_name}_bs{batch_size}_lr{lr}_{loss_name}_ep{best_epoch}_loss{val_loss:.4f}.pt"
+                checkpoint_path = os.path.join(ckpt_dir, filename)
+                torch.save(model.state_dict(), checkpoint_path)
+            else:
+                patience_counter += 1
+                print(f"No improvement. Patience: {patience_counter}/{early_stopping_patience}")
+                if patience_counter >= early_stopping_patience:
+                    print("⏹️ Early stopping triggered.")
+                    break
+    finally:
+        log_file.close()
+        builtins.print = builtin_print
