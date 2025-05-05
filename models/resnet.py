@@ -1,5 +1,6 @@
 import torch.nn as nn
 import torchvision.models as models
+import torch.nn.functional as F
 
 class ResNetWithHead(nn.Module):
     """
@@ -41,4 +42,4 @@ class ResNetWithHead(nn.Module):
         """
         x = self.encoder(x)  # ResNet feature extractor
         x = self.head(x)     # Projection head
-        return x
+        return F.normalize(x, dim=-1)
