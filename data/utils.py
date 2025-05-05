@@ -4,6 +4,9 @@ import random
 from collections import defaultdict
 from typing import Dict, List, Tuple
 
+import torch
+from torch.nn.utils.rnn import pad_sequence
+
 def load_anchor_positive_map(json_path: str) -> Dict[str, List[str]]:
     """Parses a DeepfakeArt-style JSON file and builds a mapping from anchor to its forged versions."""
     with open(json_path, 'r') as f:
@@ -76,7 +79,32 @@ def load_test_pairs(similar_json_path: str, dissimilar_json_path: str) -> List[T
     return pairs
 
 
+def contrastive_collate_fn(batch):
+    """
+    Custom collate function for SupCon training.
+    Flattens anchor + positive images into a single list.
+    Assigns group_id to each image so SupCon can compute similarities.
+    """
+    all_images = []
+    all_group_ids = []
 
+    for item in batch:
+        anchor = item["anchor"]
+        positives = item["positives"]
+        group_id = item["group_id"]
+
+        # Add anchor and each positive to the list
+        all_images.append(anchor)
+        all_group_ids.append(group_id)
+
+        for pos in positives:
+            all_images.append(pos)
+            all_group_ids.append(group_id)
+
+    images_tensor = torch.stack(all_images, dim=0)  # [N_total, C, H, W]
+    group_ids_tensor = torch.tensor(all_group_ids, dtype=torch.long)  # [N_total]
+
+    return images_tensor, group_ids_tensor
 
 
 
