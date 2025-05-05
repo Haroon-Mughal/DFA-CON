@@ -86,7 +86,7 @@ def main():
 
      # === Model selection ===
     if config["model_name"].lower() == "resnet50":
-        model = ResNetWithHead(head_type='mlp', feature_dim=config["feature_dim"]).to(config["device"])
+        model = ResNetWithHead(config['head_type'], feature_dim=config["feature_dim"]).to(config["device"])
     else:
         raise ValueError(f"Unsupported model: {config['model_name']}")
 
