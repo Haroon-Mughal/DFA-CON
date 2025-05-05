@@ -29,9 +29,10 @@ class ResNetWithHead(nn.Module):
             self.head = nn.Linear(num_ftrs, feature_dim)
         elif head_type == 'mlp':
             self.head = nn.Sequential(
-                nn.Linear(num_ftrs, num_ftrs),
-                nn.ReLU(),
-                nn.Linear(num_ftrs, feature_dim)
+              nn.Linear(2048, 2048),
+                   nn.ReLU(),
+                   nn.Dropout(0.2),
+                  nn.Linear(2048, feature_dim)
             )
         else:
             raise ValueError("head_type must be 'linear' or 'mlp'")
