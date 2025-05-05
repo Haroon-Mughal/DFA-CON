@@ -55,9 +55,9 @@ def evaluate(model, pairs, transform, threshold, device, use_projection):
     precision, recall, f1, _ = precision_recall_fscore_support(labels, preds, average="binary")
     return precision, recall, f1
 
-def load_model(model_name, feature_dim, model_path, device):
+def load_model(model_name, feature_dim, model_path, device, head_type):
     if model_name.lower() == "resnet50":
-        model = ResNetWithHead(head_type='mlp', feature_dim=feature_dim).to(device)
+        model = ResNetWithHead(head_type, feature_dim=feature_dim).to(device)
     else:
         raise ValueError(f"Unsupported model: {model_name}")
     model.load_state_dict(torch.load(model_path, map_location=device))
@@ -102,7 +102,7 @@ def main():
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     ])
 
-    model = load_model(config["model_name"], config["feature_dim"], config["model_path"], config["device"])
+    model = load_model(config["model_name"], config["feature_dim"], config["model_path"], config["device"], config['head_type'])
     model.eval()
 
     os.chdir(config["data_root"])
