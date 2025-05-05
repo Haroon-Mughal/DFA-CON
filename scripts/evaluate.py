@@ -1,7 +1,3 @@
-import sys
-import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
 import argparse
 import yaml
 import torch
@@ -15,19 +11,23 @@ import os
 from PIL import Image
 
 @torch.no_grad()
-def extract_embedding(model, path, transform, device):
+def extract_embedding(model, path, transform, device, use_projection):
     img = Image.open(path).convert("RGB")
     img = transform(img).unsqueeze(0).to(device)
-    feat = model(img)
-    return F.normalize(feat, dim=1)
+    if use_projection:
+        feat = model(img)
+    else:
+        feat = model.encoder(img)
+    return F.normalize(feat, dim=-1)
+    
 
-def compute_similarity_scores(model, pairs, transform, device):
+def compute_similarity_scores(model, pairs, transform, device, use_projection):
     model.eval()
     scores = []
     labels = []
     for path1, path2, label in tqdm(pairs, desc="Scoring pairs"):
-        emb1 = extract_embedding(model, path1, transform, device)
-        emb2 = extract_embedding(model, path2, transform, device)
+        emb1 = extract_embedding(model, path1, transform, device, use_projection)
+        emb2 = extract_embedding(model, path2, transform, device, use_projection)
         sim = F.cosine_similarity(emb1, emb2).item()
         scores.append(sim)
         labels.append(label)
@@ -44,8 +44,8 @@ def find_best_threshold(scores, labels):
             best_thresh = thresh.item()
     return best_thresh, best_f1
 
-def evaluate(model, pairs, transform, threshold, device):
-    scores, labels = compute_similarity_scores(model, pairs, transform, device)
+def evaluate(model, pairs, transform, threshold, device, use_projection):
+    scores, labels = compute_similarity_scores(model, pairs, transform, device, use_projection)
     preds = [1 if s >= threshold else 0 for s in scores]
     precision, recall, f1, _ = precision_recall_fscore_support(labels, preds, average="binary")
     return precision, recall, f1
@@ -68,6 +68,7 @@ def main():
     args = parser.parse_args()
 
     config = load_config(args.config)
+    use_projection = config.get("use_projection", False)
 
     transform = transforms.Compose([
         transforms.Resize((224, 224)),
@@ -82,13 +83,13 @@ def main():
 
     print("\nFinding best threshold on train split...")
     train_pairs = load_test_pairs(config["train_similar_json"], config["train_dissimilar_json"])
-    train_scores, train_labels = compute_similarity_scores(model, train_pairs, transform, config["device"])
+    train_scores, train_labels = compute_similarity_scores(model, train_pairs, transform, config["device"], use_projection)
     best_thresh, best_f1 = find_best_threshold(train_scores, train_labels)
     print(f"Best threshold: {best_thresh:.4f}, Train F1: {best_f1:.4f}")
 
     print("\nEvaluating on test split...")
     test_pairs = load_test_pairs(config["test_similar_json"], config["test_dissimilar_json"])
-    precision, recall, f1 = evaluate(model, test_pairs, transform, best_thresh, config["device"])
+    precision, recall, f1 = evaluate(model, test_pairs, transform, best_thresh, config["device"], use_projection)
     print(f"Test Precision: {precision:.4f}, Recall: {recall:.4f}, F1: {f1:.4f}")
 
 if __name__ == "__main__":
