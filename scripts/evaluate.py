@@ -1,3 +1,8 @@
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+
 import argparse
 import yaml
 import torch
@@ -9,6 +14,7 @@ from models.resnet import ResNetWithHead
 from tqdm import tqdm
 import os
 from PIL import Image
+from datetime import datetime
 
 @torch.no_grad()
 def extract_embedding(model, path, transform, device, use_projection):
@@ -19,7 +25,6 @@ def extract_embedding(model, path, transform, device, use_projection):
     else:
         feat = model.encoder(img)
     return F.normalize(feat, dim=-1)
-    
 
 def compute_similarity_scores(model, pairs, transform, device, use_projection):
     model.eval()
@@ -62,6 +67,26 @@ def load_config(config_path):
     with open(config_path, 'r') as f:
         return yaml.safe_load(f)
 
+def log_results(config, model_name, dataset_name, precision, recall, f1, best_thresh, use_projection):
+    base_log_dir = config.get("log_dir", "logs")
+    os.makedirs(base_log_dir, exist_ok=True)
+    log_folder = os.path.join(base_log_dir, f"{model_name}_{dataset_name}")
+    os.makedirs(log_folder, exist_ok=True)
+
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    log_path = os.path.join(log_folder, f"eval_{timestamp}.txt")
+
+    with open(log_path, "w") as f:
+        f.write(f"Model: {model_name}\n")
+        f.write(f"Dataset: {dataset_name}\n")
+        f.write(f"Use Projection Head: {use_projection}\n")
+        f.write(f"Best Threshold: {best_thresh:.4f}\n")
+        f.write(f"Test Precision: {precision:.4f}\n")
+        f.write(f"Test Recall: {recall:.4f}\n")
+        f.write(f"Test F1 Score: {f1:.4f}\n")
+
+    print(f"\n📁 Results logged to: {log_path}")
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", type=str, required=True, help="Path to YAML config file")
@@ -69,6 +94,7 @@ def main():
 
     config = load_config(args.config)
     use_projection = config.get("use_projection", False)
+    dataset_name = config.get("dataset_name", "deepfakeart")
 
     transform = transforms.Compose([
         transforms.Resize((224, 224)),
@@ -91,6 +117,8 @@ def main():
     test_pairs = load_test_pairs(config["test_similar_json"], config["test_dissimilar_json"])
     precision, recall, f1 = evaluate(model, test_pairs, transform, best_thresh, config["device"], use_projection)
     print(f"Test Precision: {precision:.4f}, Recall: {recall:.4f}, F1: {f1:.4f}")
+
+    log_results(config, config["model_name"], dataset_name, precision, recall, f1, best_thresh, use_projection)
 
 if __name__ == "__main__":
     main()
