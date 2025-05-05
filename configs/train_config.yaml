@@ -8,7 +8,7 @@ val_split: 0.2
 batch_size: 32
 epochs: 100
 warmup_epochs: 10
-lr: 0.1
+lr: 0.01
 feature_dim: 128
 patience: 10
 
