@@ -2,6 +2,7 @@ import argparse
 import torch
 from torch.utils.data import DataLoader
 from torchvision import transforms
+import yaml
 
 from data.dataset import ContrastiveTrainDataset
 from data.utils import contrastive_collate_fn
@@ -10,10 +11,15 @@ from models.resnet import ResNetWithHead
 from loss.supcon import SupConLoss
 from train.trainer import train_model
 
+def load_config(config_path):
+    with open(config_path, 'r') as f:
+        return yaml.safe_load(f)
+
+
 def main():
     parser = argparse.ArgumentParser(description="Train SupCon on DeepfakeArt")
-
-    # === General training arguments ===
+    """ 
+     # === General training arguments ===
     parser.add_argument("--data_root", type=str, required=True, help="Root directory of dataset")
     parser.add_argument("--train_sim_json", type=str, required=True, help="Path to train_similar.json")
     parser.add_argument("--train_dis_json", type=str, required=True, help="Path to train_dissimilar.json")
@@ -36,11 +42,18 @@ def main():
 
     # === Device ===
     parser.add_argument("--device", type=str, default="cuda", help="Training device: cuda or cpu")
-
+    """
+    parser.add_argument("--config", type=str, required=True, help="Path to training YAML config file")
+    
     args = parser.parse_args()
+    
+    config = load_config(args.config)
+
 
     # === Load and split data ===
-    train_map, val_map, _ = prepare_data_splits(args.train_sim_json, args.test_sim_json, val_ratio=args.val_split)
+    #train_map, val_map, _ = prepare_data_splits(args.train_sim_json, args.test_sim_json, val_ratio=args.val_split)
+    train_map, val_map, _ = prepare_data_splits(
+        config["train_sim_json"], config["test_sim_json"], val_ratio=config["val_split"])
 
     imagenet_norm = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
 
@@ -58,28 +71,29 @@ def main():
     imagenet_norm])
 
 
-    train_dataset = ContrastiveTrainDataset(train_map, root_dir=args.data_root, transform=transform_train)
-    val_dataset = ContrastiveTrainDataset(val_map, root_dir=args.data_root, transform=transform_val)
+    train_dataset = ContrastiveTrainDataset(train_map, root_dir=config["data_root"], transform=transform_train)
+    val_dataset = ContrastiveTrainDataset(val_map, root_dir=config["data_root"], transform=transform_val)
 
-    train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True,
-                              collate_fn=contrastive_collate_fn, num_workers=4)
-    val_loader = DataLoader(val_dataset, batch_size=args.batch_size, shuffle=False,
-                            collate_fn=contrastive_collate_fn, num_workers=4)
+    train_loader = DataLoader(train_dataset, batch_size=config["batch_size"], shuffle=True,
+                              collate_fn=contrastive_collate_fn, num_workers=2)
+    val_loader = DataLoader(val_dataset, batch_size=config["batch_size"], shuffle=False,
+                            collate_fn=contrastive_collate_fn, num_workers=2)
 
-    # === Model selection ===
-    if args.model_name.lower() == "resnet50":
-        model = ResNetWithHead(head_type='mlp', feature_dim=args.feature_dim).to(args.device)
+     # === Model selection ===
+    if config["model_name"].lower() == "resnet50":
+        model = ResNetWithHead(head_type='mlp', feature_dim=config["feature_dim"]).to(config["device"])
     else:
-        raise ValueError(f"Unsupported model: {args.model_name}")
+        raise ValueError(f"Unsupported model: {config['model_name']}")
 
     # === Loss function selection ===
-    if args.loss_name.lower() == "supcon":
+    if config["loss_name"].lower() == "supcon":
         loss_fn = SupConLoss()
     else:
-        raise ValueError(f"Unsupported loss function: {args.loss_name}")
+        raise ValueError(f"Unsupported loss function: {config['loss_name']}")
 
     # === Optimizer ===
-    optimizer = torch.optim.SGD(model.parameters(), lr=args.lr, momentum=0.9, weight_decay=1e-4)
+    optimizer = torch.optim.SGD(model.parameters(), lr=config["lr"], momentum=0.9, weight_decay=1e-4)
+
 
     # === Train ===
     train_model(
@@ -88,15 +102,15 @@ def main():
         val_loader=val_loader,
         optimizer=optimizer,
         loss_fn=loss_fn,
-        device=args.device,
-        num_epochs=args.epochs,
-        early_stopping_patience=args.patience,
-        warmup_epochs=args.warmup_epochs,
-        model_name=args.model_name,
-        batch_size=args.batch_size,
-        lr=args.lr,
-        loss_name=args.loss_name,
-        checkpoint_dir=args.checkpoint_dir
+        device=config["device"],
+        num_epochs=config["epochs"],
+        early_stopping_patience=config["patience"],
+        warmup_epochs=config["warmup_epochs"],
+        model_name=config["model_name"],
+        batch_size=config["batch_size"],
+        lr=config["lr"],
+        loss_name=config["loss_name"],
+        checkpoint_dir=config["checkpoint_dir"]
     )
 
 if __name__ == "__main__":

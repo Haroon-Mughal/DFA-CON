@@ -1,0 +1,19 @@
+data_root: /path/to/data
+train_sim_json: data/train_similar.json
+train_dis_json: data/train_similar.json
+test_sim_json: data/test_similar.json
+test_dis_json: data/test_similar.json
+val_split: 0.2
+
+batch_size: 32
+epochs: 100
+warmup_epochs: 10
+lr: 0.1
+feature_dim: 128
+patience: 10
+
+model_name: resnet50
+loss_name: supcon
+checkpoint_dir: checkpoints
+
+device: cuda
