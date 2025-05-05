@@ -8,27 +8,9 @@ val_split: 0.2
 
 head_type: mlp
 batch_size: 32
-epochs: 100
+epochs: 60
 warmup_epochs: 10
-lr: 0.01
-feature_dim: 128
-patience: 10
-
-model_name: resnet50
-loss_name: supcon
-checkpoint_dir: /content/drive/MyDrive/MLSP Paper/Experimentation
-
-device: cuda
-train_sim_json: /content/DeepFakeArt/similar/train_similar.json
-train_dis_json: /content/DeepFakeArt/dissimilar/train_dissimilar.json
-test_sim_json: /content/DeepFakeArt/similar/test_similar.json
-test_dis_json: /content/DeepFakeArt/dissimilar/test_dissimilar.json
-val_split: 0.2
-
-batch_size: 32
-epochs: 100
-warmup_epochs: 10
-lr: 0.01
+lr: 0.05
 feature_dim: 128
 patience: 10
 
