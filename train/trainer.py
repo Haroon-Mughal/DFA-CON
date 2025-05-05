@@ -8,6 +8,15 @@ import sys
 from datetime import datetime
 import builtins
 
+from torch.optim.lr_scheduler import SequentialLR, LinearLR, CosineAnnealingLR
+
+def create_warmup_cosine_scheduler(optimizer, warmup_epochs, total_epochs, eta_min=1e-5):
+    warmup_scheduler = LinearLR(optimizer, start_factor=1e-3, end_factor=1.0, total_iters=warmup_epochs)
+    cosine_scheduler = CosineAnnealingLR(optimizer, T_max=total_epochs - warmup_epochs, eta_min=eta_min)
+    scheduler = SequentialLR(optimizer, schedulers=[warmup_scheduler, cosine_scheduler], milestones=[warmup_epochs])
+    return scheduler
+
+
 def cosine_warmup_scheduler(optimizer, warmup_epochs, total_epochs):
     def lr_lambda(current_epoch):
         if current_epoch < warmup_epochs:
@@ -100,7 +109,8 @@ def train_model(
     best_val_loss = float("inf")
     best_epoch = -1
     patience_counter = 0
-    scheduler = cosine_warmup_scheduler(optimizer, warmup_epochs, num_epochs)
+    #scheduler = cosine_warmup_scheduler(optimizer, warmup_epochs, num_epochs)
+    scheduler = create_warmup_cosine_scheduler(optimizer, warmup_epochs, num_epochs, eta_min=1e-5)
 
     # === Pre-training evaluation ===
     print("\n🔍 Pre-training evaluation...")
