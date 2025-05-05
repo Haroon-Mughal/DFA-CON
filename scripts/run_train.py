@@ -58,7 +58,7 @@ def main():
     imagenet_norm = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
 
     transform_train = transforms.Compose([
-    transforms.Resize((224, 224))    
+    transforms.Resize((224, 224)),    
     transforms.RandomHorizontalFlip(),
     transforms.ColorJitter(0.4, 0.4, 0.4, 0.1),
     transforms.RandomGrayscale(p=0.2),
