@@ -3,18 +3,15 @@ import torch.nn.functional as F
 from tqdm import tqdm
 from torch.optim.lr_scheduler import LambdaLR
 import math
+import os
 
 def cosine_warmup_scheduler(optimizer, warmup_epochs, total_epochs):
-    """
-    Builds a learning rate scheduler with warm-up followed by cosine decay.
-    """
     def lr_lambda(current_epoch):
         if current_epoch < warmup_epochs:
             return float(current_epoch) / float(max(1, warmup_epochs))
         progress = (current_epoch - warmup_epochs) / float(max(1, total_epochs - warmup_epochs))
         return 0.5 * (1. + math.cos(math.pi * progress))
     return LambdaLR(optimizer, lr_lambda)
-
 
 def train_supcon_epoch(model, dataloader, optimizer, loss_fn, device):
     model.train()
@@ -40,7 +37,6 @@ def train_supcon_epoch(model, dataloader, optimizer, loss_fn, device):
 
     return avg_loss, feature_variance
 
-
 def validate_supcon_epoch(model, dataloader, loss_fn, device):
     model.eval()
     total_loss = 0.0
@@ -62,7 +58,6 @@ def validate_supcon_epoch(model, dataloader, loss_fn, device):
 
     return avg_loss, feature_variance
 
-
 def train_model(
     model,
     train_loader,
@@ -71,16 +66,20 @@ def train_model(
     loss_fn,
     device,
     num_epochs=100,
-    checkpoint_path="checkpoints/best_model.pt",
     early_stopping_patience=10,
-    warmup_epochs=10
+    warmup_epochs=10,
+    model_name="resnet50",
+    batch_size=32,
+    lr=0.5,
+    loss_name="supcon",
+    checkpoint_dir="checkpoints"
 ):
-    """
-    Full training loop for SupCon with early stopping and LR scheduling.
-    """
     best_val_loss = float("inf")
+    best_epoch = -1
     patience_counter = 0
     scheduler = cosine_warmup_scheduler(optimizer, warmup_epochs, num_epochs)
+
+    os.makedirs(checkpoint_dir, exist_ok=True)
 
     for epoch in range(1, num_epochs + 1):
         print(f"\nEpoch {epoch}")
@@ -100,7 +99,12 @@ def train_model(
         if val_loss < best_val_loss:
             print("✅ Saving new best model...")
             best_val_loss = val_loss
+            best_epoch = epoch
             patience_counter = 0
+
+            # Compose informative checkpoint filename
+            filename = f"{model_name}_bs{batch_size}_lr{lr}_{loss_name}_ep{best_epoch}_loss{val_loss:.4f}.pt"
+            checkpoint_path = os.path.join(checkpoint_dir, filename)
             torch.save(model.state_dict(), checkpoint_path)
         else:
             patience_counter += 1
