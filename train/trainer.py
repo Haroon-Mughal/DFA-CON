@@ -85,7 +85,7 @@ def train_model(
     loss_name="supcon",
     checkpoint_dir="checkpoints",
     log_root="logs",
-    head_type=head_type
+    head_type
 ):
     # === Create experiment directory ===
     exp_name = f"{model_name}_bs{batch_size}_lr{lr}_{loss_name}_head_type_{head_type}_warmup{warmup_epochs}"
