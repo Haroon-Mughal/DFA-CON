@@ -85,7 +85,12 @@ def train_model(
     scheduler = cosine_warmup_scheduler(optimizer, warmup_epochs, num_epochs)
 
     os.makedirs(checkpoint_dir, exist_ok=True)
-
+    
+    # === Pre-training evaluation ===
+    print("\n🔍 Pre-training evaluation...")
+    val_loss, val_var = validate_supcon_epoch(model, val_loader, loss_fn, device)
+    print(f"Val Loss (pre-train): {val_loss:.4f}, Feature Variance: {val_var:.4f}")
+    
     for epoch in range(1, num_epochs + 1):
         print(f"\nEpoch {epoch}")
 
