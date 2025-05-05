@@ -1,5 +1,6 @@
 model_path: checkpoints/resnet50_bs32_lr0.5_supcon_ep23_loss0.3742.pt
 model_name: resnet50
+head_type: mlp
 feature_dim: 128
 use_projection: true
 data_root: /path/to/data
