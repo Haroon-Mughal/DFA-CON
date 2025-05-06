@@ -5,9 +5,9 @@ train_dis_json: /content/DeepFakeArt/dissimilar/train_dissimilar.json
 test_sim_json: /content/DeepFakeArt/similar/test_similar.json
 test_dis_json: /content/DeepFakeArt/dissimilar/test_dissimilar.json
 val_split: 0.2
-warmup_patience: 4
+warmup_patience: 3
 
-head_type: linear
+head_type: mlp
 batch_size: 32
 epochs: 100
 warmup_epochs: 50
