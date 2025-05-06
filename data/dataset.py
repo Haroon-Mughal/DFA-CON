@@ -43,3 +43,25 @@ class ContrastiveTrainDataset(Dataset):
             "positives": pos_imgs,
             "group_id": idx  # Each anchor group has a unique ID
         }
+
+
+
+class InferenceDataset(Dataset):
+    """
+    Dataset for loading and transforming images for inference time.
+    Input: list of image paths
+    """
+    def __init__(self, image_paths, transform=None):
+        self.image_paths = image_paths
+        self.transform = transform
+
+    def __len__(self):
+        return len(self.image_paths)
+
+    def __getitem__(self, idx):
+        path = self.image_paths[idx]
+        img = Image.open(path).convert("RGB")
+        if self.transform:
+            img = self.transform(img)
+        return img, path
+

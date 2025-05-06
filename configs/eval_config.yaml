@@ -4,6 +4,7 @@ head_type: mlp
 feature_dim: 128
 use_projection: true
 data_root: /path/to/data
+vit_mode: cls+gap
 
 train_similar_json: data/train_similar.json
 train_dissimilar_json: data/train_dissimilar.json
