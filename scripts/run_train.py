@@ -111,6 +111,7 @@ def main():
         num_epochs=config["epochs"],
         early_stopping_patience=config["patience"],
         warmup_epochs=config["warmup_epochs"],
+        warmup_patience=config['warmup_patience']
         model_name=config["model_name"],
         batch_size=config["batch_size"],
         lr=config["lr"],
