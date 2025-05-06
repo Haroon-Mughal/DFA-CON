@@ -7,9 +7,10 @@ use_projection: true
 data_root: /content/DeepFakeArt
 vit_mode: cls+gap
 
-train_similar_json: data/train_similar.json
-train_dissimilar_json: data/train_dissimilar.json
-test_similar_json: data/test_similar.json
-test_dissimilar_json: data/test_dissimilar.json
+
+train_similar_json: /content/DeepFakeArt/similar/train_similar.json
+train_dissimilar_json: /content/DeepFakeArt/dissimilar/train_dissimilar.json
+test_similar_json: /content/DeepFakeArt/similar/test_similar.json
+test_dissimilar_json: /content/DeepFakeArt/dissimilar/test_dissimilar.json
 
 device: cuda
