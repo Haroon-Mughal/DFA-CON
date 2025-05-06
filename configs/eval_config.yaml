@@ -1,9 +1,9 @@
-model_path: checkpoints/resnet50_bs32_lr0.5_supcon_ep23_loss0.3742.pt
+model_path: /content/drive/MyDrive/MLSP Paper/Experimentation/resnet50_bs32_lr0.01_supcon_head_type_linear_warmup50/checkpoints/resnet50_bs32_lr0.01_supcon_ep9_loss2.9482.pt
 model_name: resnet50
-head_type: mlp
+head_type: linear
 feature_dim: 128
 use_projection: true
-data_root: /path/to/data
+data_root: /content/DeepFakeArt
 vit_mode: cls+gap
 
 train_similar_json: data/train_similar.json
