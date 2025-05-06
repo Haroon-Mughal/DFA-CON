@@ -1,5 +1,5 @@
 model_path: /content/drive/MyDrive/MLSP Paper/Experimentation/resnet50_bs32_lr0.01_supcon_head_type_linear_warmup50/checkpoints/resnet50_bs32_lr0.01_supcon_ep9_loss2.9482.pt
-log_dir: 
+log_dir: /content/drive/MyDrive/MLSP Paper/Evaluation
 model_name: resnet50
 head_type: linear
 feature_dim: 128

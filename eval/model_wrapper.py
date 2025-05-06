@@ -44,7 +44,7 @@ def load_embedding_model(config: dict):
     feature_dim = config["feature_dim"]
     head_type = config["head_type"]
 
-    if name == "dfa_con":
+    if name == "dfa_con_rn":
         model = ResNetWithHead(head_type=head_type, feature_dim=feature_dim).to(device)
         if model_path is None:
             raise ValueError("Model path must be provided for DFA-Con.")
