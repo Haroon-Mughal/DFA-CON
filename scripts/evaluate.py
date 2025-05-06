@@ -76,7 +76,7 @@ def load_config(config_path):
 def log_results(config, model_name, dataset_name, precision, recall, f1, best_thresh):
     base_log_dir = config.get("log_dir", "logs")
     os.makedirs(base_log_dir, exist_ok=True)
-    log_folder = os.path.join(base_log_dir, f"{model_name}_{dataset_name}")
+    log_folder = os.path.join(base_log_dir, f"{model_name}_projection{config['use_projection']}_{config['head_type']}_vitmode{config['vit_mode']}")
     os.makedirs(log_folder, exist_ok=True)
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
