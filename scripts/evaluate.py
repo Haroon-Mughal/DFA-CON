@@ -10,7 +10,7 @@ from torchvision import transforms
 from sklearn.metrics import precision_recall_fscore_support
 from data.utils import load_test_pairs
 from data.dataset import InferenceDataset
-from models.wrappers import load_embedding_model
+from eval.model_wrapper import load_embedding_model
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 from PIL import Image
