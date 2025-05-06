@@ -50,12 +50,12 @@ def prepare_data_splits(train_json: str, test_json: str, val_ratio: float = 0.2)
     train_map, val_map = split_train_val(train_full_map, val_ratio)
     return train_map, val_map, test_map
 
-def load_test_pairs(similar_json_path: str, dissimilar_json_path: str) -> List[Tuple[str, str, int]]:
+def load_test_pairs(similar_json_path: str, dissimilar_json_path: str) -> List[Tuple[str, str, int, str]]:
     """
     Loads image pairs and labels from the DeepfakeArt test set format.
 
     Returns:
-        List of (img_path1, img_path2, label)
+        List of (img_path1, img_path2, label, attack_type)
         where label = 1 for similar (forged), 0 for dissimilar (unrelated)
     """
     pairs = []
@@ -63,20 +63,23 @@ def load_test_pairs(similar_json_path: str, dissimilar_json_path: str) -> List[T
     # Load similar pairs (label = 1)
     with open(similar_json_path, 'r') as f:
         similar_data = json.load(f)
-        for _, entry in similar_data.items():
-            img1 = entry["original"]
-            img2 = entry["generated"]
-            pairs.append((img1, img2, 1))
+        for attack_type, entries in similar_data.items():
+            for _, entry in entries.items():
+                img1 = entry["original"]
+                img2 = entry["generated"]
+                pairs.append((img1, img2, 1, attack_type))
 
     # Load dissimilar pairs (label = 0)
     with open(dissimilar_json_path, 'r') as f:
         dissimilar_data = json.load(f)
-        for _, entry in dissimilar_data.items():
-            img1 = entry["image_0"]
-            img2 = entry["image_1"]
-            pairs.append((img1, img2, 0))
+        for attack_type, entries in dissimilar_data.items():
+            for _, entry in entries.items():
+                img1 = entry["image_0"]
+                img2 = entry["image_1"]
+                pairs.append((img1, img2, 0, attack_type))
 
     return pairs
+
 
 
 def contrastive_collate_fn(batch):
