@@ -34,7 +34,7 @@ def compute_embeddings(model, image_paths, transform, device, batch_size):
 def compute_similarity_scores(model, pairs, transform, device, batch_size):
     # Step 1: collect all unique image paths
     all_paths = set()
-    for path1, path2, _ in pairs:
+    for path1, path2, _, _ in pairs:
         all_paths.add(path1)
         all_paths.add(path2)
 
@@ -44,13 +44,15 @@ def compute_similarity_scores(model, pairs, transform, device, batch_size):
     # Step 3: score pairs
     scores = []
     labels = []
-    for path1, path2, label in tqdm(pairs, desc="Scoring pairs"):
+    types_ = []
+    for path1, path2, label, type_ in tqdm(pairs, desc="Scoring pairs"):
         emb1 = embedding_map[path1]
         emb2 = embedding_map[path2]
         sim = F.cosine_similarity(emb1.unsqueeze(0), emb2.unsqueeze(0)).item()
         scores.append(sim)
         labels.append(label)
-    return scores, labels
+        types_.append(type_)
+    return scores, labels, types_
 
 def find_best_threshold(scores, labels):
     best_f1 = 0
@@ -64,7 +66,7 @@ def find_best_threshold(scores, labels):
     return best_thresh, best_f1
 
 def evaluate(model, pairs, transform, threshold, device):
-    scores, labels = compute_similarity_scores(model, pairs, transform, device)
+    scores, labels, types_ = compute_similarity_scores(model, pairs, transform, device)
     preds = [1 if s >= threshold else 0 for s in scores]
     precision, recall, f1, _ = precision_recall_fscore_support(labels, preds, average="binary")
     return precision, recall, f1
@@ -115,7 +117,7 @@ def main():
 
     print("\nFinding best threshold on train split...")
     train_pairs = load_test_pairs(config["train_similar_json"], config["train_dissimilar_json"])
-    train_scores, train_labels = compute_similarity_scores(model, train_pairs, transform, config["device"], config['batch_size'])
+    train_scores, train_labels, _ = compute_similarity_scores(model, train_pairs, transform, config["device"], config['batch_size'])
     best_thresh, best_f1 = find_best_threshold(train_scores, train_labels)
     print(f"Best threshold: {best_thresh:.4f}, Train F1: {best_f1:.4f}")
 
