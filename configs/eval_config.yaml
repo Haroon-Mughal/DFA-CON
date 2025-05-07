@@ -1,12 +1,12 @@
 model_path: /content/drive/MyDrive/MLSP Paper/Experimentation/resnet50_bs32_lr0.01_supcon_head_type_linear_warmup50/checkpoints/resnet50_bs32_lr0.01_supcon_ep9_loss2.9482.pt
 log_dir: /content/drive/MyDrive/MLSP Paper/Evaluation
-model_name: resnet50_imagnet
+model_name: clip_resnet50
 head_type: linear
 feature_dim: 128
 use_projection: true
 data_root: /content/DeepFakeArt
 vit_mode: cls+gap
-batch_size: 512
+batch_size: 1024
 
 train_similar_json: /content/DeepFakeArt/similar/train_similar.json
 train_dissimilar_json: /content/DeepFakeArt/dissimilar/train_dissimilar.json

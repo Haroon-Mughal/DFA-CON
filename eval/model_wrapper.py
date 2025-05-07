@@ -58,8 +58,8 @@ def load_embedding_model(config: dict):
         model.eval()
         return NormalizedWrapper(model)
 
-    elif name == "clip_resnet50":
-        clip_model = CLIPModel.from_pretrained("openai/clip-rn50").vision_model
+    elif name == "clip_vitb16":
+        clip_model = CLIPModel.from_pretrained("openai/clip-vit-base-patch16").vision_model
         class CLIPWrapper(nn.Module):
             def __init__(self, clip_encoder):
                 super().__init__()
