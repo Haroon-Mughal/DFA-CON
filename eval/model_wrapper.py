@@ -45,7 +45,13 @@ class DinoV2Wrapper(nn.Module):
         with torch.no_grad():
             outputs = self.model(pixel_values=x)
             cls_token = outputs.last_hidden_state[:, 0]
-            return nn.functional.normalize(cls_token, dim=-1)
+            patch_tokens = outputs.last_hidden_state[:,1:]
+            if self.mode == "cls":
+                x = cls_token
+            elif self.mode == "cls+gap":
+                gap = patch_tokens.mean(dim=1)
+                x = torch.cat([cls_token, gap], dim=1)  # shape: (B, 2D)
+            return nn.functional.normalize(x, dim=-1)
 
 def load_embedding_model(config: dict):
     name = config["model_name"].lower()
