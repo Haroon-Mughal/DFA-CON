@@ -3,7 +3,7 @@ import torch.nn as nn
 import torchvision.models as models
 import timm
 from models.resnet import ResNetWithHead
-from transformers import CLIPModel
+from transformers import CLIPModel, AutoModel, AutoImageProcessor
 
 class NormalizedWrapper(nn.Module):
     def __init__(self, encoder):
@@ -36,13 +36,25 @@ class ViTDinoWrapper(nn.Module):
                 raise ValueError(f"Unsupported ViT-DINO mode: {self.mode}")
             return nn.functional.normalize(x, dim=-1)
 
+class DinoV2Wrapper(nn.Module):
+    def __init__(self, model):
+        super().__init__()
+        self.model = model
+
+    def forward(self, x):
+        with torch.no_grad():
+            outputs = self.model(pixel_values=x)
+            cls_token = outputs.last_hidden_state[:, 0]
+            return nn.functional.normalize(cls_token, dim=-1)
+
 def load_embedding_model(config: dict):
     name = config["model_name"].lower()
     device = config["device"]
     use_projection = config["use_projection"]
     model_path = config.get("model_path", None)
-    feature_dim = config["feature_dim"]
-    head_type = config["head_type"]
+    feature_dim = config.get("feature_dim", 128)
+    head_type = config.get("head_type", "mlp")
+    vit_mode = config.get("vit_mode", "cls")
 
     if name == "dfa_con_rn":
         model = ResNetWithHead(head_type=head_type, feature_dim=feature_dim).to(device)
@@ -73,11 +85,16 @@ def load_embedding_model(config: dict):
         return CLIPWrapper(clip_model).to(device)
 
     elif name == "vit_dino":
-        vit_mode = config.get("vit_mode", "cls")  # 'cls' or 'cls+gap'
         model = timm.create_model('vit_base_patch16_224', pretrained=True)
         model.head = nn.Identity()
         model.eval()
         return ViTDinoWrapper(model.to(device), mode=vit_mode)
+
+    elif name == "dinov2_vitl14":
+        processor = AutoImageProcessor.from_pretrained("facebook/dinov2-large")
+        model = AutoModel.from_pretrained("facebook/dinov2-large").to(device)
+        model.eval()
+        return DinoV2Wrapper(model), processor
 
     else:
         raise ValueError(f"Unsupported embedding model: {name}")

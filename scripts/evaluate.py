@@ -2,8 +2,6 @@ import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-
-
 import sys
 import os
 import argparse
@@ -21,7 +19,7 @@ from PIL import Image
 from datetime import datetime
 from collections import defaultdict
 
-def compute_embeddings(model, image_paths, transform, device, batch_size):
+def compute_embeddings(model, image_paths, transform, device, batch_size, processor=None):
     dataset = InferenceDataset(image_paths, transform=transform)
     loader = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=2)
     embedding_map = {}
@@ -30,6 +28,8 @@ def compute_embeddings(model, image_paths, transform, device, batch_size):
     with torch.no_grad():
         for imgs, paths in tqdm(loader, desc="Embedding images"):
             imgs = imgs.to(device)
+            if processor:
+                imgs = processor(images=list(imgs), return_tensors="pt").pixel_values.to(device)
             feats = model(imgs)
             feats = F.normalize(feats, dim=-1)
             for path, feat in zip(paths, feats):
@@ -37,13 +37,13 @@ def compute_embeddings(model, image_paths, transform, device, batch_size):
 
     return embedding_map
 
-def compute_similarity_scores(model, pairs, transform, device, batch_size):
+def compute_similarity_scores(model, pairs, transform, device, batch_size, processor=None):
     all_paths = set()
     for path1, path2, _, _ in pairs:
         all_paths.add(path1)
         all_paths.add(path2)
 
-    embedding_map = compute_embeddings(model, list(all_paths), transform, device, batch_size)
+    embedding_map = compute_embeddings(model, list(all_paths), transform, device, batch_size, processor)
 
     scores, labels, types_ = [], [], []
     for path1, path2, label, attack_type in tqdm(pairs, desc="Scoring pairs"):
@@ -56,8 +56,8 @@ def compute_similarity_scores(model, pairs, transform, device, batch_size):
 
     return scores, labels, types_
 
-def evaluate_by_type(model, pairs, transform, threshold, device, batch_size):
-    scores, labels, types_ = compute_similarity_scores(model, pairs, transform, device, batch_size)
+def evaluate_by_type(model, pairs, transform, threshold, device, batch_size, processor=None):
+    scores, labels, types_ = compute_similarity_scores(model, pairs, transform, device, batch_size, processor)
     preds = [1 if s >= threshold else 0 for s in scores]
 
     all_results = {}
@@ -111,20 +111,27 @@ def main():
     dataset_name = config.get("dataset_name", "deepfakeart")
     batch_size = config.get("eval_batch_size", 64)
 
-    transform = transforms.Compose([
-        transforms.Resize((224, 224)),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-    ])
+    # Load model (can return processor too)
+    result = load_embedding_model(config)
+    if isinstance(result, tuple):
+        model, processor = result
+        transform = None  # processor will handle it
+    else:
+        model = result
+        processor = None
+        transform = transforms.Compose([
+            transforms.Resize((224, 224)),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+        ])
 
-    model = load_embedding_model(config)
     model.eval()
 
     os.chdir(config["data_root"])
 
     print("\nFinding best threshold on train split...")
     train_pairs = load_test_pairs(config["train_similar_json"], config["train_dissimilar_json"])
-    train_scores, train_labels, train_types = compute_similarity_scores(model, train_pairs, transform, config["device"], batch_size)
+    train_scores, train_labels, train_types = compute_similarity_scores(model, train_pairs, transform, config["device"], batch_size, processor)
     best_thresh = 0.0
     best_f1 = 0.0
     for thresh in torch.linspace(0, 1, steps=100):
@@ -138,7 +145,7 @@ def main():
 
     print("\nEvaluating on test split...")
     test_pairs = load_test_pairs(config["test_similar_json"], config["test_dissimilar_json"])
-    all_results = evaluate_by_type(model, test_pairs, transform, best_thresh, config["device"], batch_size)
+    all_results = evaluate_by_type(model, test_pairs, transform, best_thresh, config["device"], batch_size, processor)
 
     for key, (p, r, f1) in all_results.items():
         print(f"{key}: Precision={p:.4f}, Recall={r:.4f}, F1={f1:.4f}")
@@ -147,3 +154,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
