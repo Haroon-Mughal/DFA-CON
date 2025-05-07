@@ -59,9 +59,15 @@ class InferenceDataset(Dataset):
         return len(self.image_paths)
 
     def __getitem__(self, idx):
-        path = self.image_paths[idx]
-        img = Image.open(path).convert("RGB")
-        if self.transform:
-            img = self.transform(img)
-        return img, path
+       path = self.image_paths[idx]
+       img = Image.open(path).convert("RGB")
+    
+       if self.transform:
+           img = self.transform(img)
+       else:
+           # Manually convert to tensor if no transform provided
+           img = transforms.ToTensor()(img)
+    
+       return img, path
+
 
