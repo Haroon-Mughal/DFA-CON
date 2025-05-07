@@ -84,11 +84,11 @@ def load_config(config_path):
 def log_results(config, model_name, dataset_name, best_thresh, all_results):
     base_log_dir = config.get("log_dir", "logs")
     os.makedirs(base_log_dir, exist_ok=True)
-    log_folder = os.path.join(base_log_dir, f"{model_name}_{dataset_name}")
+    log_folder = os.path.join(base_log_dir, f"{model_name}_{dataset_name}_{config['use_projection']}_{config['head_type']}_{config['vit_mode']}")
     os.makedirs(log_folder, exist_ok=True)
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    log_path = os.path.join(log_folder, f"eval_{timestamp}.txt")
+    log_path = os.path.join(log_folder, f"eval.txt")
 
     with open(log_path, "w") as f:
         f.write(f"Model: {model_name}\n")
