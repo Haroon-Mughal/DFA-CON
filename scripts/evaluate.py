@@ -13,7 +13,7 @@ import torch.nn.functional as F
 from torchvision import transforms
 from sklearn.metrics import precision_recall_fscore_support
 from data.utils import load_test_pairs
-from models.wrappers import load_embedding_model
+from eval.model_wrapper import load_embedding_model
 from tqdm import tqdm
 from PIL import Image
 from datetime import datetime
