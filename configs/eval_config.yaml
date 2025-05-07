@@ -6,7 +6,7 @@ feature_dim: 128
 use_projection: true
 data_root: /content/DeepFakeArt
 vit_mode: cls+gap
-eval_batch_size: 1024
+eval_batch_size: 256
 
 train_similar_json: /content/DeepFakeArt/similar/train_similar.json
 train_dissimilar_json: /content/DeepFakeArt/dissimilar/train_dissimilar.json

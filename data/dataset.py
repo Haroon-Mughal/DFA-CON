@@ -66,7 +66,12 @@ class InferenceDataset(Dataset):
            img = self.transform(img)
        else:
            # Manually convert to tensor if no transform provided
-           img = transforms.ToTensor()(img)
+           transform = transforms.Compose([
+           transforms.Resize((224, 224)),
+           transforms.ToTensor()
+           ])
+           img = transform(img)
+           
     
        return img, path
 
