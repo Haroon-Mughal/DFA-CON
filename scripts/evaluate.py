@@ -135,7 +135,7 @@ def main():
 
     print("\nFinding best threshold on train split...")
     train_pairs = load_test_pairs(config["train_similar_json"], config["train_dissimilar_json"])
-    train_scores, train_labels, train_types = compute_similarity_scores(model, train_pairs, transform, config["device"], batch_size, processor)
+    train_scores, train_labels, train_types, _ = compute_similarity_scores(model, train_pairs, transform, config["device"], batch_size, processor)
     best_thresh = 0.0
     best_f1 = 0.0
     for thresh in torch.linspace(0, 1, steps=100):
