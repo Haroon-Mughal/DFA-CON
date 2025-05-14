@@ -6,6 +6,7 @@ import sys
 import os
 import argparse
 import yaml
+import json
 import torch
 import torch.nn.functional as F
 from torchvision import transforms
@@ -93,6 +94,7 @@ def log_results(config, model_name, dataset_name, best_thresh, all_results, embe
 
     with open(log_path, "w") as f:
         f.write(f"Model: {model_name}\n")
+        f.write(f"Checkpoint path: {config.get('model_path')}\n")
         f.write(f"Dataset: {dataset_name}\n")
         f.write(f"Use Projection Head: {config.get('use_projection', False)}\n")
         f.write(f"ViT Mode (if applicable): {config.get('vit_mode', 'N/A')}\n")

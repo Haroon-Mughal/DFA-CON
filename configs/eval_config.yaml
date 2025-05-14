@@ -1,9 +1,9 @@
-model_path: /content/drive/MyDrive/MLSP Paper/Experimentation/resnet50_bs32_lr0.01_supcon_head_type_linear_warmup50/checkpoints/resnet50_bs32_lr0.01_supcon_ep9_loss2.9482.pt
+model_path: /content/drive/MyDrive/MLSP Paper/Experimentation/resnet50_bs128_lr0.01_supcon_head_type_linear_warmupDynamic/checkpoints/resnet50_bs128_lr0.01_supcon_ep16_loss3.5363.pt
 log_dir: /content/drive/MyDrive/MLSP Paper/Evaluation
-model_name: dinov2_vitl14
+model_name: dfa_con_rn
 head_type: linear
 feature_dim: 128
-use_projection: true
+use_projection: false
 data_root: /content/DeepFakeArt
 vit_mode: cls+gap
 eval_batch_size: 256
