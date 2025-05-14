@@ -54,10 +54,10 @@ def compute_similarity_scores(model, pairs, transform, device, batch_size, proce
         labels.append(label)
         types_.append(attack_type)
 
-    return scores, labels, types_
+    return scores, labels, types_, embedding_map
 
 def evaluate_by_type(model, pairs, transform, threshold, device, batch_size, processor=None):
-    scores, labels, types_ = compute_similarity_scores(model, pairs, transform, device, batch_size, processor)
+    scores, labels, types_, embedding_map = compute_similarity_scores(model, pairs, transform, device, batch_size, processor)
     preds = [1 if s >= threshold else 0 for s in scores]
 
     all_results = {}
@@ -75,13 +75,13 @@ def evaluate_by_type(model, pairs, transform, threshold, device, batch_size, pro
         precision, recall, f1, _ = precision_recall_fscore_support(sub_labels, sub_preds, average="binary")
         all_results[attack] = (precision, recall, f1)
 
-    return all_results
+    return all_results, embedding_map
 
 def load_config(config_path):
     with open(config_path, 'r') as f:
         return yaml.safe_load(f)
 
-def log_results(config, model_name, dataset_name, best_thresh, all_results):
+def log_results(config, model_name, dataset_name, best_thresh, all_results, embedding_map):
     base_log_dir = config.get("log_dir", "logs")
     os.makedirs(base_log_dir, exist_ok=True)
     log_folder = os.path.join(base_log_dir, f"{model_name}_{dataset_name}_{config['use_projection']}_{config['head_type']}_{config['vit_mode']}")
@@ -89,6 +89,7 @@ def log_results(config, model_name, dataset_name, best_thresh, all_results):
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     log_path = os.path.join(log_folder, f"eval.txt")
+    embedding_path = os.path.join(log_folder, f"emb.json")
 
     with open(log_path, "w") as f:
         f.write(f"Model: {model_name}\n")
@@ -99,7 +100,8 @@ def log_results(config, model_name, dataset_name, best_thresh, all_results):
         f.write("\nPerformance by category:\n")
         for key, (p, r, f1) in all_results.items():
             f.write(f"{key}: Precision={p:.4f}, Recall={r:.4f}, F1={f1:.4f}\n")
-
+    with open(embedding_path, 'w') as f:
+        json.dump(embedding_map, f)
     print(f"\n📁 Results logged to: {log_path}")
 
 def main():
@@ -145,12 +147,12 @@ def main():
 
     print("\nEvaluating on test split...")
     test_pairs = load_test_pairs(config["test_similar_json"], config["test_dissimilar_json"])
-    all_results = evaluate_by_type(model, test_pairs, transform, best_thresh, config["device"], batch_size, processor)
-
+    all_results, embedding_map = evaluate_by_type(model, test_pairs, transform, best_thresh, config["device"], batch_size, processor)
+    ### save the embeddings 
     for key, (p, r, f1) in all_results.items():
         print(f"{key}: Precision={p:.4f}, Recall={r:.4f}, F1={f1:.4f}")
 
-    log_results(config, config["model_name"], dataset_name, best_thresh, all_results)
+    log_results(config, config["model_name"], dataset_name, best_thresh, all_results, embedding_map)
 
 if __name__ == "__main__":
     main()
