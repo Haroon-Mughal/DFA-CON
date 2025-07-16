@@ -1,6 +1,6 @@
 # DFA-CON
 This is the official repository containing code for the paper "DFA-CON: A CONTRASTIVE LEARNING APPROACH FOR DETECTING COPYRIGHT
-INFRINGEMENT IN DEEPFAKE ART" Published at IEEE MLSP 2025.
+INFRINGEMENT IN DEEPFAKE ART" accepted (poster presentation) at IEEE MLSP 2025.
 ## DeepfakeArt Contrastive Benchmark
 
 This repo implements contrastive learning for AI-generated art forgery detection using the DeepfakeArt dataset.
