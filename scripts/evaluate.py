@@ -104,7 +104,7 @@ def log_results(config, model_name, dataset_name, best_thresh, all_results, embe
             f.write(f"{key}: Precision={p:.4f}, Recall={r:.4f}, F1={f1:.4f}\n")
     with open(embedding_path, 'w') as f:
         json.dump(embedding_map, f)
-    print(f"\n📁 Results logged to: {log_path}")
+    print(f"\n Results logged to: {log_path}")
 
 def main():
     parser = argparse.ArgumentParser()
@@ -158,4 +158,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
