@@ -4,12 +4,12 @@
 model_name: dfa_con_rn
 dataset_name: copyrighted_artworks
 device: cuda:0        # or cpu
-data_root: /path/to/dataset_root
+data_root: /content/DeepFakeArt
 
 # =====================
 # Model
 # =====================
-model_path: model_path: /content/drive/MyDrive/MLSP Paper/Experimentation/resnet50_bs128_lr0.01_supcon_head_type_linear_warmupDynamic/checkpoints/resnet50_bs128_lr0.01_supcon_ep16_loss3.5363.pt
+model_path: /content/drive/MyDrive/MLSP Paper/Experimentation/resnet50_bs128_lr0.01_supcon_head_type_linear_warmupDynamic/checkpoints/resnet50_bs128_lr0.01_supcon_ep16_loss3.5363.pt
 use_projection: false
 head_type: linear
 vit_mode: base
@@ -27,7 +27,7 @@ image_paths_json: data/original_image_paths.json
 # Output
 # =====================
 output_dir: embeddings_out
-save_faiss: true
+save_faiss: false
 
 # =====================
 # Preprocessing (optional override)
