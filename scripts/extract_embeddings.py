@@ -109,7 +109,7 @@ def main():
     # --------------------
     image_paths = load_image_paths(cfg["image_paths_json"])
 
-    # Resolve paths relative to data_root (same logic as evaluate.py)
+    # Resolve paths relative to data_root 
     os.chdir(cfg["data_root"])
 
     dataset = InferenceDataset(image_paths, transform=transform)
