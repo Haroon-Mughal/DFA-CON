@@ -1,0 +1,38 @@
+# =====================
+# General
+# =====================
+model_name: clip_vit_b32
+dataset_name: copyrighted_artworks
+device: cuda:0        # or cpu
+data_root: /path/to/dataset_root
+
+# =====================
+# Model
+# =====================
+model_path: checkpoints/clip_vit_b32.pt
+use_projection: true
+head_type: linear
+vit_mode: base
+
+# =====================
+# Inference / Embedding
+# =====================
+eval_batch_size: 64
+num_workers: 4
+
+# JSON created earlier that contains ONLY original/source image paths
+image_paths_json: data/original_image_paths.json
+
+# =====================
+# Output
+# =====================
+output_dir: embeddings_out
+save_faiss: true
+
+# =====================
+# Preprocessing (optional override)
+# If you are NOT using a HF processor
+# =====================
+image_size: 224
+normalize_mean: [0.485, 0.456, 0.406]
+normalize_std:  [0.229, 0.224, 0.225]
