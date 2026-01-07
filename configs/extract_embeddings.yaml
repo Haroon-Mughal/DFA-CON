@@ -1,7 +1,7 @@
 # =====================
 # General
 # =====================
-model_name: clip_vit_b32
+model_name: dfa_con_rn
 dataset_name: copyrighted_artworks
 device: cuda:0        # or cpu
 data_root: /path/to/dataset_root
@@ -9,8 +9,8 @@ data_root: /path/to/dataset_root
 # =====================
 # Model
 # =====================
-model_path: checkpoints/clip_vit_b32.pt
-use_projection: true
+model_path: model_path: /content/drive/MyDrive/MLSP Paper/Experimentation/resnet50_bs128_lr0.01_supcon_head_type_linear_warmupDynamic/checkpoints/resnet50_bs128_lr0.01_supcon_ep16_loss3.5363.pt
+use_projection: false
 head_type: linear
 vit_mode: base
 
