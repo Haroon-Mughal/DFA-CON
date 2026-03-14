@@ -101,7 +101,7 @@ def train_model(
         warmup_scheduler = LinearLR(optimizer, start_factor=1e-3, end_factor=1.0, total_iters=warmup_epochs)
         cosine_scheduler = CosineAnnealingLR(optimizer, T_max=num_epochs - warmup_epochs, eta_min=1e-5)
 
-        print("\n🔍 Pre-training evaluation...")
+        print("\n Pre-training evaluation...")
         val_loss, val_var = validate_supcon_epoch(model, val_loader, loss_fn, device)
         print(f"Val Loss (pre-train): {val_loss:.4f}, Feature Variance: {val_var:.4f}")
 
@@ -122,9 +122,9 @@ def train_model(
                 warmup_scheduler.step()
                 if val_loss >= best_val_loss:
                     warmup_counter += 1
-                    print(f"🔁 Warmup patience counter: {warmup_counter}/{warmup_patience}")
+                    print(f" Warmup patience counter: {warmup_counter}/{warmup_patience}")
                     if warmup_counter >= warmup_patience:
-                        print("🚀 Switching to Cosine Annealing Scheduler")
+                        print(" Switching to Cosine Annealing Scheduler")
                         in_warmup = False
                 else:
                     warmup_counter = 0
@@ -132,10 +132,10 @@ def train_model(
                 cosine_scheduler.step()
 
             current_lr = optimizer.param_groups[0]['lr']
-            print(f"📉 Learning Rate: {current_lr:.6f}")
+            print(f" Learning Rate: {current_lr:.6f}")
 
             if val_loss < best_val_loss:
-                print("✅ Saving new best model...")
+                print(" Saving new best model...")
                 best_val_loss = val_loss
                 best_epoch = epoch
                 patience_counter = 0
@@ -146,7 +146,7 @@ def train_model(
                 patience_counter += 1
                 print(f"No improvement. Patience: {patience_counter}/{early_stopping_patience}")
                 if patience_counter >= early_stopping_patience:
-                    print("⏹️ Early stopping triggered.")
+                    print("Early stopping triggered.")
                     break
     finally:
         log_file.close()
